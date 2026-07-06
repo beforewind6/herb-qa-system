@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  edurag-app:
+    build: .
+    image: edurag-system:4.0
+    container_name: edurag-container
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    environment:
+      # 应用配置
+      - HOST=${HOST:-0.0.0.0}
+      - PORT=${PORT:-8080}
+      - PROJECT_ROOT=${PROJECT_ROOT:-/app}
+      
+      # MySQL 配置
+      - MYSQL_HOST=${MYSQL_HOST:-mysql}
+      - MYSQL_PORT=${MYSQL_PORT:-3306}
+      - MYSQL_USER=${MYSQL_USER:-edu_rag}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-123456}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-subjects_kg}
+      
+      # Redis 配置
+      - REDIS_HOST=${REDIS_HOST:-redis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-1234}
+      - REDIS_DB=${REDIS_DB:-0}
+      
+      # Milvus 配置
+      - MILVUS_HOST=${MILVUS_HOST:-milvus}
+      - MILVUS_PORT=${MILVUS_PORT:-19530}
+      - MILVUS_DATABASE_NAME=${MILVUS_DATABASE_NAME:-itcast}
+      - MILVUS_COLLECTION_NAME=${MILVUS_COLLECTION_NAME:-edurag_xian_1}
+      
+      # LLM 配置
+      - DASHSCOPE_API_KEY=${DASHSCOPE_API_KEY:-sk-b7314bb9c71a444293456ce5dcedf57e}
+      - LLM_MODEL=${LLM_MODEL:-qwen-plus}
+      - DASHSCOPE_BASE_URL=${DASHSCOPE_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
+      
+      # 检索参数配置
+      - PARENT_CHUNK_SIZE=${PARENT_CHUNK_SIZE:-1200}
+      - CHILD_CHUNK_SIZE=${CHILD_CHUNK_SIZE:-300}
+      - CHUNK_OVERLAP=${CHUNK_OVERLAP:-50}
+      - RETRIEVAL_K=${RETRIEVAL_K:-3}
+      - CANDIDATE_M=${CANDIDATE_M:-2}
+      
+      # 应用配置
+      - VALID_SOURCES=${VALID_SOURCES:-["ai", "java", "test", "ops", "bigdata"]}
+      - CUSTOMER_SERVICE_PHONE=${CUSTOMER_SERVICE_PHONE:-12345678}
+
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped

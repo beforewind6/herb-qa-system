@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>杏林问答 — 中医药知识智能问答系统</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --bg: #faf6f0;
+            --bg-card: #fffdf9;
+            --bg-sidebar: #f5efe4;
+            --text: #3d2c1e;
+            --text-muted: #8b7355;
+            --text-dim: #b8a387;
+            --border: #e5d9c8;
+            --primary: #8b4513;
+            --primary-light: #b8652b;
+            --primary-dark: #6b3410;
+            --accent: #c41e3a;
+            --accent-soft: #f0e4d0;
+            --herb: #5b8c5a;
+            --herb-light: #e8f2e2;
+            --gold: #c9a96e;
+            --gold-light: #faf3e6;
+            --radius: 12px;
+            --radius-sm: 8px;
+            --shadow: 0 2px 16px rgba(60, 30, 10, 0.08);
+            --shadow-lg: 0 8px 32px rgba(60, 30, 10, 0.12);
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body.dark-mode {
+            --bg: #1a1410;
+            --bg-card: #231d16;
+            --bg-sidebar: #1e1712;
+            --text: #efe4d8;
+            --text-muted: #a8947a;
+            --text-dim: #6b5d4c;
+            --border: #3a2f22;
+            --accent-soft: #3a2218;
+            --herb-light: #1a2a18;
+            --gold-light: #2a2218;
+            --shadow: 0 2px 16px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Noto Serif SC', 'Source Han Serif SC', 'STSong', 'SimSun', 'Songti SC', 'Segoe UI', serif;
+            line-height: 1.7;
+            color: var(--text);
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            transition: background 0.4s, color 0.4s;
+        }
+
+        /* === Header === */
+        header {
+            background: linear-gradient(135deg, #3d1f0c 0%, #5a3020 40%, #3d1f0c 100%);
+            color: #efe4d8;
+            padding: 0.9rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 2px 20px rgba(60, 20, 10, 0.2);
+            border-bottom: 2px solid var(--gold);
+            z-index: 10;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .header-icon {
+            font-size: 2rem;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            font-family: 'Noto Serif SC', 'STKaiti', 'KaiTi', serif;
+        }
+
+        .header-subtitle {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            letter-spacing: 0.08em;
+            margin-top: 2px;
+        }
+
+        .header-right {
+            position: absolute;
+            right: 1.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            gap: 8px;
+        }
+
+        .theme-toggle, .github-link {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #efe4d8;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+
+        .theme-toggle:hover, .github-link:hover {
+            background: rgba(255,255,255,0.2);
+            transform: scale(1.08);
+        }
+
+        /* === Layout === */
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 1rem;
+            display: flex;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .chat-container {
+            display: flex;
+            flex: 1;
+            border-radius: var(--radius);
+            overflow: hidden;
+            background: var(--bg-card);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border);
+        }
+
+        /* === Sidebar === */
+        .sidebar {
+            width: 280px;
+            background: var(--bg-sidebar);
+            padding: 1.2rem;
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+        }
+
+        .search-box {
+            padding: 0.6rem 1rem;
+            border-radius: 24px;
+            border: 1.5px solid var(--border);
+            background: var(--bg-card);
+            color: var(--text);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            transition: var(--transition);
+            font-family: inherit;
+            outline: none;
+        }
+
+        .search-box:focus {
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.15);
+        }
+
+        .session-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .new-session-btn, .clear-history-btn {
+            flex: 1;
+            padding: 0.55rem 0.5rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            font-size: 0.82rem;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+            font-family: inherit;
+        }
+
+        .new-session-btn {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+        .new-session-btn:hover {
+            background: var(--primary-light);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(139, 69, 19, 0.25);
+        }
+
+        .clear-history-btn {
+            background: transparent;
+            color: var(--text-muted);
+        }
+        .clear-history-btn:hover {
+            background: #fdeded;
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+        body.dark-mode .clear-history-btn:hover {
+            background: rgba(196, 30, 58, 0.1);
+        }
+
+        .history-title {
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            letter-spacing: 0.04em;
+        }
+
+        .history-list {
+            flex: 1;
+            overflow-y: auto;
+            scrollbar-width: thin;
+        }
+
+        .history-item {
+            padding: 0.8rem;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            margin-bottom: 0.5rem;
+            background: var(--bg-card);
+            border: 1px solid transparent;
+        }
+
+        .history-item:hover {
+            border-color: var(--gold);
+            transform: translateX(4px);
+            box-shadow: var(--shadow);
+        }
+
+        .history-question {
+            font-weight: 600;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--text);
+        }
+
+        .history-answer {
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-top: 2px;
+        }
+
+        .session-info {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+            font-family: 'Courier New', monospace;
+        }
+
+        /* === Main Chat === */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            min-width: 0;
+        }
+
+        .chat-history {
+            flex: 1;
+            padding: 1.5rem 2rem;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+            scrollbar-width: thin;
+        }
+
+        .chat-history::-webkit-scrollbar,
+        .history-list::-webkit-scrollbar {
+            width: 5px;
+        }
+        .chat-history::-webkit-scrollbar-thumb,
+        .history-list::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 10px;
+        }
+        .chat-history::-webkit-scrollbar-thumb:hover,
+        .history-list::-webkit-scrollbar-thumb:hover {
+            background: var(--text-dim);
+        }
+
+        /* === Messages === */
+        .message {
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            animation: fadeIn 0.35s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.35rem;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+        }
+
+        .avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .user-msg .avatar {
+            background: var(--primary);
+            color: #fff;
+        }
+        .sys-msg .avatar {
+            background: var(--herb-light);
+            color: var(--herb);
+        }
+
+        .message-content {
+            padding: 0.9rem 1.2rem;
+            border-radius: var(--radius);
+            max-width: 78%;
+            word-break: break-word;
+            line-height: 1.8;
+            font-size: 0.95rem;
+            box-shadow: var(--shadow);
+        }
+
+        .user-msg {
+            align-self: flex-end;
+            align-items: flex-end;
+        }
+        .user-msg .message-content {
+            background: linear-gradient(135deg, var(--primary), #9b5a2a);
+            color: #fff;
+            border-top-right-radius: 4px;
+        }
+
+        .sys-msg {
+            align-self: flex-start;
+        }
+        .sys-msg .message-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-top-left-radius: 4px;
+        }
+
+        .message-content p { margin-bottom: 0.5rem; }
+        .message-content p:last-child { margin-bottom: 0; }
+        .message-content pre {
+            background: rgba(0,0,0,0.06);
+            padding: 1rem;
+            border-radius: var(--radius-sm);
+            overflow-x: auto;
+            margin: 0.5rem 0;
+            font-size: 0.85rem;
+            border-left: 3px solid var(--gold);
+        }
+        body.dark-mode .message-content pre {
+            background: rgba(0,0,0,0.3);
+        }
+        .message-content code {
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+            font-size: 0.88rem;
+        }
+        .message-content ul, .message-content ol {
+            padding-left: 1.5rem;
+            margin: 0.5rem 0;
+        }
+
+        /* === Typing Indicator === */
+        .typing-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 0.8rem 1.2rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            border-top-left-radius: 4px;
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow);
+        }
+
+        .typing-indicator span {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--gold);
+            animation: typing 1.2s infinite;
+        }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.15s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.3s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-6px); opacity: 1; }
+        }
+
+        /* === Chat Input === */
+        .chat-input-container {
+            padding: 1rem 1.5rem 1.2rem;
+            border-top: 1px solid var(--border);
+            background: var(--bg-card);
+        }
+
+        .source-filter {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.6rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .source-filter select {
+            margin-left: 0.5rem;
+            padding: 0.35rem 0.8rem;
+            border-radius: 20px;
+            border: 1.5px solid var(--border);
+            background: var(--bg);
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: var(--transition);
+            outline: none;
+        }
+
+        .source-filter select:focus {
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.12);
+        }
+
+        .input-group {
+            display: flex;
+            position: relative;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 0.8rem 3rem 0.8rem 1.2rem;
+            border: 1.5px solid var(--border);
+            border-radius: 28px;
+            font-size: 0.95rem;
+            resize: none;
+            min-height: 48px;
+            max-height: 160px;
+            overflow-y: auto;
+            background: var(--bg);
+            color: var(--text);
+            font-family: inherit;
+            transition: var(--transition);
+            outline: none;
+            line-height: 1.5;
+        }
+
+        .chat-input:focus {
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.1);
+        }
+
+        .chat-input::placeholder {
+            color: var(--text-dim);
+        }
+
+        .send-btn {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-50%) scale(1.08);
+            box-shadow: 0 4px 16px rgba(139, 69, 19, 0.3);
+        }
+
+        .send-btn:disabled {
+            background: var(--text-dim);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .send-btn:disabled:hover {
+            transform: translateY(-50%) scale(1);
+        }
+
+        /* === Quick Replies === */
+        .quick-replies {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-top: 0.7rem;
+        }
+
+        .quick-reply-btn {
+            padding: 0.35rem 1rem;
+            background: var(--accent-soft);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            color: var(--text);
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: var(--transition);
+            font-family: inherit;
+        }
+
+        .quick-reply-btn:hover {
+            background: var(--gold-light);
+            border-color: var(--gold);
+            color: var(--primary);
+        }
+
+        /* === Loading Overlay === */
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(250, 246, 240, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            visibility: hidden;
+            backdrop-filter: blur(4px);
+            transition: var(--transition);
+        }
+        body.dark-mode .loading-overlay {
+            background: rgba(26, 20, 16, 0.7);
+        }
+
+        .herb-spinner {
+            width: 44px;
+            height: 44px;
+            border: 3px solid var(--border);
+            border-radius: 50%;
+            border-top-color: var(--herb);
+            animation: spin 0.9s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* === Welcome Card === */
+        .welcome-card {
+            text-align: center;
+            padding: 2.5rem 2rem;
+            max-width: 560px;
+            margin: 0 auto;
+        }
+
+        .welcome-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+        }
+
+        .welcome-card h2 {
+            font-family: 'Noto Serif SC', 'STKaiti', 'KaiTi', serif;
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.06em;
+        }
+
+        .welcome-card p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.8;
+        }
+
+        .category-chips {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1.2rem;
+        }
+
+        .category-chip {
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--text-muted);
+            cursor: default;
+            transition: var(--transition);
+        }
+
+        .category-chip:hover {
+            border-color: var(--herb);
+            color: var(--herb);
+            background: var(--herb-light);
+        }
+
+        /* === Responsive === */
+        @media (max-width: 768px) {
+            .chat-container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+                max-height: 180px;
+                padding: 0.8rem;
+            }
+
+            .message-content {
+                max-width: 92%;
+            }
+
+            .chat-history {
+                padding: 1rem;
+            }
+
+            header h1 {
+                font-size: 1.2rem;
+            }
+
+            .header-icon {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <span class="header-icon">🌿</span>
+            <div>
+                <h1>杏林问答</h1>
+                <div class="header-subtitle">中医药知识智能问答系统</div>
+            </div>
+        </div>
+        <div class="header-right">
+            <a href="https://github.com" target="_blank" class="github-link" title="GitHub">
+                <i class="fab fa-github"></i>
+            </a>
+            <button class="theme-toggle" id="themeToggle" title="切换主题">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="chat-container">
+            <div class="sidebar">
+                <input type="text" class="search-box" id="searchBox" placeholder="🔍 搜索历史会话...">
+
+                <div class="session-controls">
+                    <button class="new-session-btn" id="newSessionBtn">
+                        <i class="fas fa-plus"></i> 新会话
+                    </button>
+                    <button class="clear-history-btn" id="clearHistoryBtn">
+                        <i class="fas fa-trash"></i> 清除
+                    </button>
+                </div>
+
+                <div class="history-title">
+                    <i class="fas fa-clock"></i> 历史会话
+                </div>
+                <div class="history-list" id="historyList"></div>
+                <div class="session-info" id="sessionInfo"></div>
+            </div>
+
+            <div class="main-content">
+                <div class="chat-history" id="chatHistory">
+                    <div class="welcome-card">
+                        <div class="welcome-icon">🏥</div>
+                        <h2>杏林春暖 · 橘井泉香</h2>
+                        <p>您好！我是杏林问答助手，专注于中医药知识传播。<br>
+                        无论您想了解中药药性、方剂配伍，还是中医理论、针灸穴位，<br>我都能为您答疑解惑。</p>
+                        <div class="category-chips">
+                            <span class="category-chip">🌿 中药基础</span>
+                            <span class="category-chip">📜 方剂学</span>
+                            <span class="category-chip">☯ 中医基础理论</span>
+                            <span class="category-chip">📍 针灸学</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chat-input-container">
+                    <div class="source-filter">
+                        <label for="sourceFilter">📂 知识分类：</label>
+                        <select id="sourceFilter">
+                            <option value="">全部</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <textarea class="chat-input" id="chatInput" placeholder="请输入您想了解的中医药问题..."
+                            rows="1" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+                        <button class="send-btn" id="sendBtn" title="发送">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                    <div class="quick-replies" id="quickReplies">
+                        <button class="quick-reply-btn">什么是四气五味？</button>
+                        <button class="quick-reply-btn">四君子汤的组成？</button>
+                        <button class="quick-reply-btn">足三里穴在哪里？</button>
+                        <button class="quick-reply-btn">什么是八纲辨证？</button>
+                    </div>
+                </div>
+
+                <div class="loading-overlay" id="loadingOverlay">
+                    <div class="herb-spinner"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var currentSessionId = null;
+        var isResponseInProgress = false;
+        var socket = null;
+        var isDarkMode = false;
+
+        var chatHistory = document.getElementById('chatHistory');
+        var chatInput = document.getElementById('chatInput');
+        var sendBtn = document.getElementById('sendBtn');
+        var sourceFilter = document.getElementById('sourceFilter');
+        var historyList = document.getElementById('historyList');
+        var sessionInfo = document.getElementById('sessionInfo');
+        var newSessionBtn = document.getElementById('newSessionBtn');
+        var clearHistoryBtn = document.getElementById('clearHistoryBtn');
+        var loadingOverlay = document.getElementById('loadingOverlay');
+        var themeToggle = document.getElementById('themeToggle');
+        var searchBox = document.getElementById('searchBox');
+        var quickReplies = document.getElementById('quickReplies');
+        var quickReplyBtns = quickReplies.querySelectorAll('.quick-reply-btn');
+        var API_BASE_URL = '';
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            isDarkMode = localStorage.getItem('darkMode') === 'true';
+            updateTheme();
+            await createNewSession();
+            await loadSources();
+
+            sendBtn.addEventListener('click', sendMessage);
+            chatInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+
+            newSessionBtn.addEventListener('click', createNewSession);
+            clearHistoryBtn.addEventListener('click', clearHistory);
+            themeToggle.addEventListener('click', toggleTheme);
+            searchBox.addEventListener('input', searchHistory);
+
+            quickReplyBtns.forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    chatInput.value = btn.textContent;
+                    chatInput.style.height = 'auto';
+                    chatInput.style.height = chatInput.scrollHeight + 'px';
+                    sendMessage();
+                });
+            });
+        });
+
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            localStorage.setItem('darkMode', isDarkMode);
+            updateTheme();
+        }
+
+        function updateTheme() {
+            if (isDarkMode) {
+                document.body.classList.add('dark-mode');
+                themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+            } else {
+                document.body.classList.remove('dark-mode');
+                themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+            }
+        }
+
+        function searchHistory() {
+            var term = searchBox.value.toLowerCase();
+            var items = historyList.querySelectorAll('.history-item');
+            items.forEach(function(item) {
+                var q = (item.querySelector('.history-question') || {}).textContent || '';
+                var a = (item.querySelector('.history-answer') || {}).textContent || '';
+                item.style.display = (q + a).toLowerCase().includes(term) ? 'block' : 'none';
+            });
+        }
+
+        async function createNewSession() {
+            showLoading();
+            try {
+                var res = await fetch(API_BASE_URL + '/api/create_session', { method: 'POST' });
+                if (!res.ok) throw new Error('创建会话失败');
+                var data = await res.json();
+                currentSessionId = data.session_id;
+                sessionInfo.textContent = '会话: ' + currentSessionId.slice(0, 8) + '...';
+                resetChatHistory();
+                await loadHistory();
+            } catch (e) {
+                console.error('创建会话错误:', e);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function loadSources() {
+            try {
+                var res = await fetch(API_BASE_URL + '/api/sources');
+                if (!res.ok) throw new Error('获取分类失败');
+                var data = await res.json();
+                sourceFilter.innerHTML = '<option value="">全部</option>';
+                data.sources.forEach(function(s) {
+                    var opt = document.createElement('option');
+                    opt.value = s;
+                    opt.textContent = s;
+                    sourceFilter.appendChild(opt);
+                });
+            } catch (e) {
+                console.error('加载分类错误:', e);
+            }
+        }
+
+        async function loadHistory() {
+            if (!currentSessionId) return;
+            try {
+                var res = await fetch(API_BASE_URL + '/api/history/' + currentSessionId);
+                if (!res.ok) throw new Error('获取历史失败');
+                var data = await res.json();
+                historyList.innerHTML = '';
+                var item = document.createElement('div');
+                item.className = 'history-item';
+                item.innerHTML =
+                    '<div class="history-question">会话 ' + currentSessionId.slice(0, 8) + '...</div>' +
+                    '<div class="history-answer">共 ' + data.history.length + ' 轮对话</div>';
+                item.addEventListener('click', function() {
+                    resetChatHistory();
+                    data.history.forEach(function(h) {
+                        addMessage('user', h.question);
+                        addMessage('system', h.answer);
+                    });
+                    scrollToBottom();
+                });
+                historyList.appendChild(item);
+            } catch (e) {
+                console.error('加载历史错误:', e);
+            }
+        }
+
+        async function clearHistory() {
+            if (!currentSessionId || !confirm('确定要清除所有历史记录吗？')) return;
+            showLoading();
+            try {
+                var res = await fetch(API_BASE_URL + '/api/history/' + currentSessionId, { method: 'DELETE' });
+                if (!res.ok) throw new Error('清除失败');
+                historyList.innerHTML = '';
+                resetChatHistory();
+            } catch (e) {
+                console.error('清除历史错误:', e);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function resetChatHistory() {
+            chatHistory.innerHTML =
+                '<div class="welcome-card">' +
+                '<div class="welcome-icon">🏥</div>' +
+                '<h2>杏林春暖 · 橘井泉香</h2>' +
+                '<p>您好！我是杏林问答助手，专注于中医药知识传播。<br>' +
+                '无论您想了解中药药性、方剂配伍，还是中医理论、针灸穴位，<br>我都能为您答疑解惑。</p>' +
+                '<div class="category-chips">' +
+                '<span class="category-chip">🌿 中药基础</span>' +
+                '<span class="category-chip">📜 方剂学</span>' +
+                '<span class="category-chip">☯ 中医基础理论</span>' +
+                '<span class="category-chip">📍 针灸学</span>' +
+                '</div></div>';
+        }
+
+        function showLoading() { loadingOverlay.style.visibility = 'visible'; }
+        function hideLoading() { loadingOverlay.style.visibility = 'hidden'; }
+
+        async function sendMessage() {
+            var query = chatInput.value.trim();
+            var filter = sourceFilter.value;
+            if (!query || isResponseInProgress) return;
+
+            chatInput.value = '';
+            chatInput.style.height = 'auto';
+            addMessage('user', query);
+            isResponseInProgress = true;
+
+            var typingEl = document.createElement('div');
+            typingEl.className = 'typing-indicator';
+            typingEl.innerHTML = '<span></span><span></span><span></span>';
+            chatHistory.appendChild(typingEl);
+            scrollToBottom();
+
+            try {
+                var res = await fetch(API_BASE_URL + '/api/query', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: query, source_filter: filter || null, session_id: currentSessionId })
+                });
+                if (!res.ok) throw new Error('查询失败');
+                var data = await res.json();
+                removeTyping(typingEl);
+
+                if (data.is_streaming) {
+                    var msgEl = document.createElement('div');
+                    msgEl.className = 'message sys-msg';
+                    var headerEl = document.createElement('div');
+                    headerEl.className = 'message-header';
+                    headerEl.innerHTML = '<div class="avatar">🌿</div><span>杏林助手</span>';
+                    var contentEl = document.createElement('div');
+                    contentEl.className = 'message-content';
+                    contentEl.innerHTML = '';
+                    msgEl.appendChild(headerEl);
+                    msgEl.appendChild(contentEl);
+                    chatHistory.appendChild(msgEl);
+                    await handleStreaming(query, filter, contentEl);
+                } else {
+                    addMessage('system', data.answer);
+                }
+                await loadHistory();
+            } catch (e) {
+                console.error('发送消息错误:', e);
+                removeTyping(typingEl);
+                addMessage('system', '抱歉，发生错误: ' + e.message);
+            } finally {
+                isResponseInProgress = false;
+                scrollToBottom();
+            }
+        }
+
+        function removeTyping(el) {
+            if (el && el.parentNode) el.parentNode.removeChild(el);
+        }
+
+        async function handleStreaming(query, filter, contentEl) {
+            if (socket && socket.readyState === WebSocket.OPEN) socket.close();
+            return new Promise(function(resolve, reject) {
+                var protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                var wsUrl = protocol + '//' + window.location.host + API_BASE_URL + '/api/stream';
+                socket = new WebSocket(wsUrl);
+                var accumulated = '';
+
+                socket.onopen = function() {
+                    socket.send(JSON.stringify({ query: query, source_filter: filter || null, session_id: currentSessionId }));
+                };
+
+                socket.onmessage = function(event) {
+                    var data = JSON.parse(event.data);
+                    if (data.type === 'token') {
+                        accumulated += data.token;
+                        contentEl.innerHTML = marked.parse(accumulated);
+                        scrollToBottom();
+                    } else if (data.type === 'end') {
+                        socket.close();
+                        resolve();
+                    } else if (data.type === 'error') {
+                        contentEl.innerHTML += '<p style="color:#c41e3a">[错误: ' + data.error + ']</p>';
+                        socket.close();
+                        reject(new Error(data.error));
+                    }
+                };
+
+                socket.onerror = function(err) {
+                    contentEl.innerHTML += '<p style="color:#c41e3a">[连接错误]</p>';
+                    reject(err);
+                };
+                socket.onclose = function() { resolve(); };
+            });
+        }
+
+        function addMessage(type, content) {
+            var msgEl = document.createElement('div');
+            msgEl.className = 'message ' + (type === 'user' ? 'user-msg' : 'sys-msg');
+
+            var headerEl = document.createElement('div');
+            headerEl.className = 'message-header';
+            if (type === 'user') {
+                headerEl.innerHTML = '<div class="avatar"><i class="fas fa-user"></i></div><span>我</span>';
+            } else {
+                headerEl.innerHTML = '<div class="avatar">🌿</div><span>杏林助手</span>';
+            }
+
+            var contentEl = document.createElement('div');
+            contentEl.className = 'message-content';
+            contentEl.innerHTML = marked.parse(content);
+
+            msgEl.appendChild(headerEl);
+            msgEl.appendChild(contentEl);
+            chatHistory.appendChild(msgEl);
+            scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+    </script>
+</body>
+</html>

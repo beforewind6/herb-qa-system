@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Environment
+.env
+venv/
+.venv/
+
+# Logs
+logs/*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Large models (too big for git)
+rag_qa/models/
+
+# Checkpoints
+rag_qa/core/bert_results/
+
+# Data files (optional - uncomment if needed)
+# rag_qa/data/ai_data/
