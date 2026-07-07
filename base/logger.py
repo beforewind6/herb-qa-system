@@ -56,4 +56,5 @@ def get_logger(project_name
 
 
 
-single_logger = get_logger('EDU_RAG')
+single_logger = get_logger('TCM_QA')
+logger = single_logger  # compatible alias

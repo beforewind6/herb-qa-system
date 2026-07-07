@@ -32,6 +32,10 @@ class RAGSystem:
         #   初始化策略选择器
         self.strategy_selector = StrategySelector()
 
+    def _call_llm(self, prompt):
+        """Collect streaming LLM output into a single string (for internal non-streaming use)."""
+        return ''.join(list(self.llm(prompt)))
+
     """
     需求：实现假设文档嵌入（HyDE）检索策略
     思路步骤：
@@ -50,7 +54,7 @@ class RAGSystem:
         try:
             # TODO 2. 基于传入的query，构造假设答案生成的提示词
             # TODO 3. 调用大模型生成假设答案
-            hypo_answer = self.llm(hyde_prompt_template.format(query=query)).strip()
+            hypo_answer = self._call_llm(hyde_prompt_template.format(query=query)).strip()
             logger.info(f"HyDE 生成的假设答案: '{hypo_answer}'")
             #   使用假设答案进行检索，并返回检索结果
             #   注意：HyDE 通常只用于生成检索向量，不一定需要 rerank 这一步，但这里复用了
@@ -79,7 +83,7 @@ class RAGSystem:
         subquery_prompt_template = RAGPrompts.subquery_prompt()  # 使用 template 后缀区分
         try:
             #   调用大语言模型生成子查询列表
-            subqueries_text = self.llm(subquery_prompt_template.format(query=query)).strip()
+            subqueries_text = self._call_llm(subquery_prompt_template.format(query=query)).strip()
             subqueries = [q.strip() for q in subqueries_text.split("\n") if q.strip()]
             logger.info(f"生成的子查询: {subqueries}")
             if not subqueries:
@@ -128,7 +132,7 @@ class RAGSystem:
         backtrack_prompt_template = RAGPrompts.backtracking_prompt()  # 使用 template 后缀区分
         try:
             #   调用大语言模型生成回溯问题
-            simplified_query = self.llm(backtrack_prompt_template.format(query=query)).strip()
+            simplified_query = self._call_llm(backtrack_prompt_template.format(query=query)).strip()
             logger.info(f"生成的回溯问题: '{simplified_query}'")
             #   使用回溯问题进行检索，并返回检索结果
             return self.vector_store.hybrid_search_with_rerank(

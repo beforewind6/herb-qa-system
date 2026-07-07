@@ -71,8 +71,6 @@ class MysqlClient:
                 self.connect.rollback()
             except Exception as rollback_err:
                 logger.error(f'数据回滚失败:{rollback_err}')
-        # ... 原有插入逻辑 ...
-        self.connection.commit()
         # 通知 BM25 刷新（通过回调或直接调用）
 
     def fetch_all_questions(self):

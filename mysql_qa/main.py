@@ -3,7 +3,7 @@ from mysql_qa.db.mysql_client import MysqlClient
 # 导入 Redis 客户端
 from mysql_qa.cache.redis_client import RedisClient
 # 导入 BM25 搜索
-from mysql_qa.retreival.bm25_search import Bm25Search
+from mysql_qa.retrieval.bm25_search import Bm25Search
 # 导入日志
 from base.logger import single_logger as logger
 # 导入时间库

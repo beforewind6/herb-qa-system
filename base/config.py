@@ -57,7 +57,7 @@ class Config:
         # LLM 模型名
         self.LLM_MODEL = self.config.get('llm', 'model', fallback='qwen-plus')
         # DashScope API 密钥
-        self.DASHSCOPE_API_KEY = os.getenv('DASHSCOPE_API_KEY', 'sk-b7314bb9c71a444293456ce5dcedf57e')
+        self.DASHSCOPE_API_KEY = os.getenv('DASHSCOPE_API_KEY', self.config.get('llm', 'dashscope_api_key', fallback='YOUR_DASHSCOPE_API_KEY_HERE'))
         # DashScope API 地址
         self.DASHSCOPE_BASE_URL = self.config.get('llm', 'dashscope_base_url',
                                                   fallback='https://dashscope.aliyuncs.com/compatible-mode/v1')
@@ -86,6 +86,7 @@ class Config:
 
 
 single_config = Config()
+config = single_config  # compatible alias
 
 if __name__ == '__main__':
     conf = single_config

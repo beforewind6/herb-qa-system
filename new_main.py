@@ -3,14 +3,9 @@ import uuid
 
 from openai import OpenAI
 
-from mysql_qa.retrieval.bm25_search import BM25Search
+from mysql_qa.retrieval.bm25_search import Bm25Search
 from mysql_qa.db.mysql_client import MysqlClient
 from mysql_qa.cache.redis_client import RedisClient
-
-# TODO 改造rag_system
-from rag_qa.core.new_rag_system import RAGSystem
-
-from rag_qa.core.vector_store import VectorStore
 
 from base.config import config
 from base.logger import logger
@@ -30,14 +25,11 @@ import pymysql
 
 class IntegratedQASystem():
     def __init__(self):
-        self.faq = BM25Search(
+        self.faq = Bm25Search(
             mysql_client=MysqlClient()
             , redis_client=RedisClient()
         )
-        self.rag = RAGSystem(
-            vector_store=VectorStore()
-            , llm=self.call_dashscope
-        )
+        self._rag = None  # lazy-loaded RAG engine
 
         self.client = OpenAI(api_key=config.DASHSCOPE_API_KEY,
                              base_url=config.DASHSCOPE_BASE_URL)
@@ -48,6 +40,17 @@ class IntegratedQASystem():
 
         # TODO 对于有session的版本，在系统初始化的时候，进行建表操作
         self.init_conversation_table()
+
+    @property
+    def rag(self):
+        if self._rag is None:
+            from rag_qa.core.new_rag_system import RAGSystem
+            from rag_qa.core.vector_store import VectorStore
+            self._rag = RAGSystem(
+                vector_store=VectorStore(),
+                llm=self.call_dashscope
+            )
+        return self._rag
 
     def call_dashscope(self, prompt):
         """调用DashScope API生成答案（流式输出）"""
@@ -232,8 +235,8 @@ class IntegratedQASystem():
 
         history = self._fetch_recent_history(session_id=session_id) if session_id else []
 
-        # 2. 调用BM25Search.query，得到答案和是否需要继续查询RAG系统
-        answer, need_rag = self.faq.query(query, threshold=0.85)
+        # 2. 调用BM25Search.search，得到答案和是否需要继续查询RAG系统
+        answer, need_rag = self.faq.search(query, threshold=0.85)
         # 3. 如果得到答案，直接返回
         if answer:
             end_time = time.time()
@@ -243,6 +246,7 @@ class IntegratedQASystem():
             if session_id:
                 self.update_session_history(session_id=session_id, question=query, answer=answer)
             yield answer, True
+            return
 
         logger.info(f"在FAQ模块中未能找到可靠的答案，问题：{query}")
 

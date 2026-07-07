@@ -9,7 +9,7 @@ services:
       - "${APP_PORT:-8080}:8080"
     environment:
       # 应用配置
-      - HOST=${HOST:-0.0.0.0}
+      - HOST=${HOST:-localhost}
       - PORT=${PORT:-8080}
       - PROJECT_ROOT=${PROJECT_ROOT:-/app}
       
@@ -33,7 +33,7 @@ services:
       - MILVUS_COLLECTION_NAME=${MILVUS_COLLECTION_NAME:-edurag_xian_1}
       
       # LLM 配置
-      - DASHSCOPE_API_KEY=${DASHSCOPE_API_KEY:-sk-b7314bb9c71a444293456ce5dcedf57e}
+      - DASHSCOPE_API_KEY=${DASHSCOPE_API_KEY:-YOUR_DASHSCOPE_API_KEY_HERE}
       - LLM_MODEL=${LLM_MODEL:-qwen-plus}
       - DASHSCOPE_BASE_URL=${DASHSCOPE_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
       

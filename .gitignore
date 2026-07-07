@@ -31,3 +31,6 @@ rag_qa/core/bert_results/
 
 # Data files (optional - uncomment if needed)
 # rag_qa/data/ai_data/
+
+# Claude Code
+.claude/

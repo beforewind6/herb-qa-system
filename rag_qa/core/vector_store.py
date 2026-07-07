@@ -449,12 +449,6 @@ class VectorStore:
 
 
 if __name__ == '__main__':
-    # import document_processor
-    #
-    # documents = document_processor.process_documents(
-    #     'D:/BaiduNetdiskDownload/integrated_qa_system/rag_qa/data/ai_data')
-    # store = VectorStore()
-    # store.add_documents(documents)
     store = VectorStore()
     result = store.hybrid_search_with_rerank("大模型学什么")
     print(result)

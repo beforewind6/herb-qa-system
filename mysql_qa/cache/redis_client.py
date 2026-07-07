@@ -91,9 +91,9 @@ class RedisClient(object):
             question: 问题文本
 
         Returns:
-            格式化的Redis键名，格式为：edurag:answer:{question}
+            格式化的Redis键名，格式为：tcmqa:answer:{question}
         """
-        return f'edurag:answer:{question}'
+        return f'tcmqa:answer:{question}'
 
     def set_answer(self, question, answer):
         """

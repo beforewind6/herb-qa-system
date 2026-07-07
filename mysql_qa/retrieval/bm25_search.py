@@ -35,7 +35,7 @@ class Bm25Search:
 
     def flush_cache(self):
         """MySQL 数据更新后调用，清空相关缓存并重建索引"""
-        keys = ["edurag:bj31:original_questions", "edurag:bj31:tokenized_questions"]
+        keys = ["tcmqa:v1:original_questions", "tcmqa:v1:tokenized_questions"]
         for key in keys:
             self.redis_client.delete(key)
         # 重建 BM25 索引
@@ -44,8 +44,8 @@ class Bm25Search:
 
 
     def _load_data(self):
-        original_questions_key = 'edurag:bj31:original_questions'
-        tokenized_questions_key = 'edurag:bj31:tokenized_questions'
+        original_questions_key = 'tcmqa:v1:original_questions'
+        tokenized_questions_key = 'tcmqa:v1:tokenized_questions'
         #  1. 判断系统是不是第一次启动
         tokenized_questions = self.redis_client.get_data(tokenized_questions_key)
         original_questions = self.redis_client.get_data(original_questions_key)

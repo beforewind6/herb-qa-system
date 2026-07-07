@@ -89,6 +89,17 @@ class QueryResponse(BaseModel):
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
+# 健康检查接口
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy"}
+
+# 获取有效学科类别接口
+@app.get("/api/sources")
+async def get_sources():
+    return {"sources": qa_system.config.VALID_SOURCES}
+
+
 # 根路径重定向到 index.html
 @app.get("/")
 async def read_root():
@@ -142,7 +153,7 @@ async def query(request: QueryRequest):
             "session_id": session_id,
             "processing_time": time.time() - start_time
         }
-    answer, need_rag = qa_system.faq.query(request.query, threshold=0.85)
+    answer, need_rag = qa_system.faq.search(request.query, threshold=0.85)
     if need_rag:
         return {
             "answer": "请使用WebSocket接口获取流式响应",
@@ -226,18 +237,9 @@ async def websocket_endpoint(websocket: WebSocket):
         except Exception as e:
             logger.error(f"Error closing WebSocket: {str(e)}")
 
-    @app.get("/health")
-    async def health_check():
-        return {"status": "healthy"}
-
-    @app.get("/api/sources")
-    async def get_sources():
-        return {"sources": qa_system.config.VALID_SOURCES}
-
-
 if __name__ == "__main__":
     import uvicorn
     import os
-    host = os.getenv('HOST', '0.0.0.0')
+    host = os.getenv('HOST', 'localhost')
     port = int(os.getenv('PORT', 8080))
-    uvicorn.run("app:app", host=host, port=port, reload=False)
+    uvicorn.run(app, host=host, port=port, reload=False)
